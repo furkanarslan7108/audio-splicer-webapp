@@ -218,3 +218,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ffmpeg.wasm build, fetched by scripts/vendor-ffmpeg-wasm.sh
+frontend/vendor/

@@ -1,6 +1,6 @@
 # AeroSplice — audio splicer webapp
 
-A small dockerized web app for **splicing** audio clips together and **extracting** audio from video/audio files, powered by ffmpeg. Python (FastAPI) backend, vanilla HTML/CSS/JS frontend with a Frutiger Aero look.
+A small dockerized web app for **splicing** audio clips together and **extracting** audio from video/audio files, powered by ffmpeg. Vanilla HTML/CSS/JS frontend with a Frutiger Aero look; ffmpeg runs **in the browser** via [ffmpeg.wasm](https://github.com/ffmpegwasm/ffmpeg.wasm), so your files are never uploaded. A small Python (FastAPI) server hosts the page and keeps a server-side ffmpeg API as a fallback.
 
 ## Run
 
@@ -29,6 +29,12 @@ Open <http://localhost:8000>.
 
 Each panel can show the equivalent ffmpeg command.
 
+**Stays in your browser**
+- Processing runs in ffmpeg.wasm (single-threaded core, ~32 MB, downloaded once and then cached). Inputs are read straight from your files rather than copied into wasm memory, but the output is built in memory, so very large results (around 2 GB) won't fit.
+- Opus is encoded with ffmpeg's built-in `opus` encoder in the browser, because the wasm build's `libopus` crashes on stereo input.
+- Your clips, trims, settings and last results are kept in IndexedDB and come back after a reload.
+- If the wasm build can't be loaded, the app falls back to uploading to the server's API.
+
 Times can be written in seconds (`75.5`) or clock format (`1:15.5`, `1:02:03`).
 
 ## Configuration
@@ -40,9 +46,11 @@ Set these environment variables in `docker-compose.yml`:
 | `MAX_UPLOAD_MB` | `1024`  | Total upload size limit per request      |
 | `MAX_FILES`     | `50`    | Max clips per splice                     |
 
-Uploads go to a tmpfs (`/tmp`, 4 GB) and are deleted once the response has been sent.
+These only apply to the server fallback / API. Its uploads go to a tmpfs (`/tmp`, 4 GB) and are deleted once the response has been sent.
 
 ## API
+
+The browser doesn't need these, but they're handy for scripting (and are the fallback when ffmpeg.wasm is unavailable).
 
 - `POST /api/splice` — multipart: `files` (repeated, in order), `trims` (JSON list of `{start, end}`), `format`, `bitrate`, `output_name`
 - `POST /api/extract` — multipart: `file`, `start`, `end`, `format`, `bitrate`, `output_name`
@@ -55,9 +63,10 @@ curl -F files=@p1.m4a -F files=@p2.m4a -F format=mp3 -F bitrate=96k \
 
 ## Local dev without Docker
 
-Requires `ffmpeg` on your PATH.
+Requires `ffmpeg` on your PATH (for the API) and `npm` (to fetch the ffmpeg.wasm build into `frontend/vendor/`, which is git-ignored; the Docker build does this itself).
 
 ```bash
+scripts/vendor-ffmpeg-wasm.sh
 cd backend
 pip install -r requirements.txt
 uvicorn app.main:app --reload

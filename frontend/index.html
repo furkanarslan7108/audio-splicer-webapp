@@ -17,8 +17,8 @@
     <div class="bubbles"></div>
   </div>
 
-  <main class="app">
-    <header class="brand">
+  <header class="topbar">
+    <div class="brand">
       <div class="orb" aria-hidden="true">
         <svg viewBox="0 0 64 64"><path d="M10 34h7l5-14 7 26 6-19 5 12 4-5h10"/></svg>
       </div>
@@ -26,49 +26,69 @@
         <h1>AeroSplice</h1>
         <p>Splice &amp; extract audio with ffmpeg</p>
       </div>
-    </header>
+    </div>
 
     <nav class="tabs" role="tablist">
       <button role="tab" class="tab active" data-tab="splice" aria-selected="true">Splice clips</button>
       <button role="tab" class="tab" data-tab="extract" aria-selected="false">Extract audio</button>
     </nav>
 
-    <!-- ───────────── Splice ───────────── -->
-    <section class="panel glass" id="tab-splice">
-      <label class="drop" id="splice-drop">
+    <span class="health" id="health"><i></i><span>connecting…</span></span>
+  </header>
+
+  <!-- ───────────── Splice ───────────── -->
+  <main class="workspace" id="tab-splice">
+    <aside class="rail">
+      <label class="drop tall glass" id="splice-drop">
         <input type="file" id="splice-input" accept="audio/*,video/*" multiple hidden>
         <span class="drop-bubble" aria-hidden="true">+</span>
-        <span class="drop-title">Drop audio clips here</span>
-        <span class="drop-sub">or click to browse — they'll be joined top to bottom</span>
+        <span class="drop-title">Drop audio clips</span>
+        <span class="drop-sub">or click to browse.<br>They play top to bottom.</span>
       </label>
 
+      <div class="tips glass">
+        <h2>Good to know</h2>
+        <ul>
+          <li><b>Original (lossless)</b> joins without re-encoding. Every clip needs the same codec, sample rate and channels — e.g. recordings from one phone.</li>
+          <li>Pick <b>MP3</b>, <b>M4A</b> etc. to mix different sources.</li>
+          <li>Times take seconds (<code>75.5</code>) or clock format (<code>1:15.5</code>). Blank means the whole clip.</li>
+          <li>◷ copies the preview's current position.</li>
+        </ul>
+      </div>
+    </aside>
+
+    <section class="stage glass">
+      <div class="stage-head">
+        <h2>Timeline</h2>
+        <span class="pill" id="splice-total">0 clips</span>
+        <button class="btn glass-btn small" id="splice-clear">Clear all</button>
+      </div>
+
+      <div class="timeline" id="timeline">
+        <div class="timeline-empty">Your spliced track will take shape here</div>
+      </div>
+      <div class="ruler" id="ruler"></div>
+
       <ol class="clips" id="clip-list"></ol>
-      <p class="empty-hint" id="clip-empty">No clips yet. Add two or more to splice them together.</p>
+      <p class="empty-hint" id="clip-empty">No clips yet. Drop two or more on the left to splice them together.</p>
+    </section>
 
-      <div class="settings">
-        <label class="field">
-          <span>Output format</span>
-          <select id="splice-format"></select>
-        </label>
-        <label class="field">
-          <span>Bitrate</span>
-          <select id="splice-bitrate"></select>
-        </label>
-        <label class="field grow">
-          <span>File name</span>
-          <input type="text" id="splice-name" value="merged" spellcheck="false">
-        </label>
-      </div>
+    <aside class="output glass">
+      <h2>Output</h2>
+      <label class="field">
+        <span>Format</span>
+        <select id="splice-format"></select>
+      </label>
+      <label class="field">
+        <span>Bitrate</span>
+        <select id="splice-bitrate"></select>
+      </label>
+      <label class="field">
+        <span>File name</span>
+        <input type="text" id="splice-name" value="merged" spellcheck="false">
+      </label>
 
-      <details class="cmd">
-        <summary>Equivalent ffmpeg command</summary>
-        <pre id="splice-cmd"></pre>
-      </details>
-
-      <div class="actions">
-        <button class="btn aqua big" id="splice-go" disabled>Splice</button>
-        <button class="btn glass-btn" id="splice-clear">Clear all</button>
-      </div>
+      <button class="btn aqua big" id="splice-go" disabled>Splice</button>
 
       <div class="status" id="splice-status" hidden>
         <div class="progress"><div class="bar"></div></div>
@@ -79,64 +99,86 @@
         <audio controls></audio>
         <a class="btn green" download>Download</a>
       </div>
-    </section>
 
-    <!-- ───────────── Extract ───────────── -->
-    <section class="panel glass" id="tab-extract" hidden>
-      <label class="drop" id="extract-drop">
+      <details class="cmd">
+        <summary>ffmpeg command</summary>
+        <pre id="splice-cmd"></pre>
+      </details>
+    </aside>
+  </main>
+
+  <!-- ───────────── Extract ───────────── -->
+  <main class="workspace" id="tab-extract" hidden>
+    <aside class="rail">
+      <label class="drop tall glass" id="extract-drop">
         <input type="file" id="extract-input" accept="audio/*,video/*" hidden>
         <span class="drop-bubble" aria-hidden="true">♪</span>
         <span class="drop-title">Drop a video or audio file</span>
-        <span class="drop-sub">pull out the soundtrack, optionally just a slice of it</span>
+        <span class="drop-sub">Pull out the soundtrack,<br>or just a slice of it.</span>
       </label>
 
-      <div class="source glass-inner" id="extract-source" hidden>
-        <div class="source-head">
-          <strong class="source-name"></strong>
-          <span class="pill source-meta"></span>
-        </div>
-        <video id="extract-preview" controls playsinline></video>
-        <div class="settings">
-          <label class="field">
-            <span>Start</span>
-            <div class="with-btn">
-              <input type="text" id="extract-start" placeholder="0:00" spellcheck="false">
-              <button class="btn mini" data-mark="extract-start" title="Use current player position">◷</button>
-            </div>
-          </label>
-          <label class="field">
-            <span>End</span>
-            <div class="with-btn">
-              <input type="text" id="extract-end" placeholder="end" spellcheck="false">
-              <button class="btn mini" data-mark="extract-end" title="Use current player position">◷</button>
-            </div>
-          </label>
-        </div>
+      <div class="tips glass" id="extract-source" hidden>
+        <h2>Source</h2>
+        <dl class="facts">
+          <dt>File</dt><dd class="source-name"></dd>
+          <dt>Length</dt><dd class="source-duration"></dd>
+          <dt>Size</dt><dd class="source-size"></dd>
+          <dt>Type</dt><dd class="source-type"></dd>
+        </dl>
+      </div>
+    </aside>
+
+    <section class="stage glass">
+      <div class="stage-head">
+        <h2>Preview</h2>
+        <span class="pill" id="extract-span">whole file</span>
       </div>
 
-      <div class="settings">
+      <div class="screen" id="extract-screen">
+        <video id="extract-preview" controls playsinline hidden></video>
+        <div class="screen-empty" id="extract-empty">Nothing loaded yet</div>
+      </div>
+
+      <div class="range" id="extract-range" title="Click to seek">
+        <div class="range-sel"></div>
+        <div class="range-head"></div>
+      </div>
+      <div class="ruler" id="extract-ruler"></div>
+
+      <div class="cut-row">
         <label class="field">
-          <span>Output format</span>
-          <select id="extract-format"></select>
+          <span>Start</span>
+          <div class="with-btn">
+            <input type="text" id="extract-start" placeholder="0:00" spellcheck="false">
+            <button class="btn mini" data-mark="extract-start" title="Use current player position">◷</button>
+          </div>
         </label>
         <label class="field">
-          <span>Bitrate</span>
-          <select id="extract-bitrate"></select>
-        </label>
-        <label class="field grow">
-          <span>File name</span>
-          <input type="text" id="extract-name" placeholder="(auto)" spellcheck="false">
+          <span>End</span>
+          <div class="with-btn">
+            <input type="text" id="extract-end" placeholder="end" spellcheck="false">
+            <button class="btn mini" data-mark="extract-end" title="Use current player position">◷</button>
+          </div>
         </label>
       </div>
+    </section>
 
-      <details class="cmd">
-        <summary>Equivalent ffmpeg command</summary>
-        <pre id="extract-cmd"></pre>
-      </details>
+    <aside class="output glass">
+      <h2>Output</h2>
+      <label class="field">
+        <span>Format</span>
+        <select id="extract-format"></select>
+      </label>
+      <label class="field">
+        <span>Bitrate</span>
+        <select id="extract-bitrate"></select>
+      </label>
+      <label class="field">
+        <span>File name</span>
+        <input type="text" id="extract-name" placeholder="(auto)" spellcheck="false">
+      </label>
 
-      <div class="actions">
-        <button class="btn aqua big" id="extract-go" disabled>Extract</button>
-      </div>
+      <button class="btn aqua big" id="extract-go" disabled>Extract</button>
 
       <div class="status" id="extract-status" hidden>
         <div class="progress"><div class="bar"></div></div>
@@ -147,9 +189,12 @@
         <audio controls></audio>
         <a class="btn green" download>Download</a>
       </div>
-    </section>
 
-    <footer>Times accept seconds (<code>75.5</code>) or clock format (<code>1:15.5</code>). Leave blank to use the whole clip.</footer>
+      <details class="cmd">
+        <summary>ffmpeg command</summary>
+        <pre id="extract-cmd"></pre>
+      </details>
+    </aside>
   </main>
 
   <template id="clip-template">
@@ -160,22 +205,22 @@
       <div class="clip-main">
         <div class="clip-name"></div>
         <div class="clip-meta"></div>
-        <div class="clip-trim">
-          <label>from
-            <input type="text" class="t-start" placeholder="0:00" spellcheck="false">
-            <button class="btn mini" data-mark="start" title="Use current preview position">◷</button>
-          </label>
-          <label>to
-            <input type="text" class="t-end" placeholder="end" spellcheck="false">
-            <button class="btn mini" data-mark="end" title="Use current preview position">◷</button>
-          </label>
-        </div>
+      </div>
+      <div class="clip-trim">
+        <label>from
+          <input type="text" class="t-start" placeholder="0:00" spellcheck="false">
+          <button class="btn mini" data-mark="start" title="Use current preview position">◷</button>
+        </label>
+        <label>to
+          <input type="text" class="t-end" placeholder="end" spellcheck="false">
+          <button class="btn mini" data-mark="end" title="Use current preview position">◷</button>
+        </label>
       </div>
       <div class="clip-move">
         <button class="btn round tiny up" title="Move up">▲</button>
         <button class="btn round tiny down" title="Move down">▼</button>
+        <button class="btn round tiny remove" title="Remove">✕</button>
       </div>
-      <button class="btn round tiny remove" title="Remove">✕</button>
     </li>
   </template>
 

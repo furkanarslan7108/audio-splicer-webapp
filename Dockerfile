@@ -1,3 +1,8 @@
+# ffmpeg.wasm build that the browser runs; served by the app itself.
+FROM node:20-slim AS wasm
+COPY scripts/vendor-ffmpeg-wasm.sh /vendor.sh
+RUN sh /vendor.sh /wasm
+
 FROM python:3.12-slim
 
 RUN apt-get update \
@@ -10,6 +15,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend/app ./app
 COPY frontend ./frontend
+COPY --from=wasm /wasm ./frontend/vendor/ffmpeg
 
 ENV STATIC_DIR=/srv/frontend \
     MAX_UPLOAD_MB=1024 \
