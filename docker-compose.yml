@@ -1,0 +1,13 @@
+services:
+  audio-splicer:
+    build: .
+    image: audio-splicer
+    ports:
+      - "8000:8000"
+    environment:
+      MAX_UPLOAD_MB: 1024
+      MAX_FILES: 50
+    # Uploads and outputs live in /tmp only for the duration of a request.
+    tmpfs:
+      - /tmp:size=4g
+    restart: unless-stopped
