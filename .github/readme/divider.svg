@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 18" width="1200" height="18" aria-hidden="true">
+<defs>
+  <linearGradient id="fade" x1="0" x2="1">
+    <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".15" stop-color="#fff"/>
+    <stop offset=".85" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+  </linearGradient>
+  <mask id="m"><rect width="1200" height="18" fill="url(#fade)"/></mask>
+  <linearGradient id="bar" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#7fe3ff"/><stop offset=".5" stop-color="#1aa6e6"/><stop offset="1" stop-color="#0670b8"/>
+  </linearGradient>
+  <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity=".1"/>
+  </linearGradient>
+</defs>
+<g mask="url(#m)">
+  <rect x="0" y="5" width="1200" height="8" rx="4" fill="url(#bar)"/>
+  <rect x="6" y="5.5" width="1188" height="3.5" rx="1.75" fill="url(#gloss)"/>
+</g>
+<g transform="translate(600 9)">
+  <circle r="8" fill="#55c234" stroke="#fff" stroke-width="2"/>
+  <ellipse cy="-3" rx="5" ry="3" fill="#fff" opacity=".8"/>
+</g>
+</svg>
